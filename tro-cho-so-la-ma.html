@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò chơi ghép cặp: Số La Mã ↔ Số Thập Phân</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.2); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.4); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .level-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 8px 16px;
+            border: 2px solid rgba(255,255,255,0.5);
+            background: transparent;
+            color: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .level-btn.active {
+            background: rgba(255,255,255,0.2);
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .level-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #4834d4, #686de0);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #00b894, #00cec9);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-modes {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mode-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .game-area {
+            display: grid;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        /* Flip Cards Mode */
+        .flip-mode {
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            width: 120px;
+            height: 80px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .card-front {
+            background: linear-gradient(45deg, #ffecd2, #fcb69f);
+            color: #333;
+        }
+
+        .card-back {
+            background: linear-gradient(45deg, #a8edea, #fed6e3);
+            color: #333;
+            transform: rotateY(180deg);
+        }
+
+        .card.roman .card-back {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+        }
+
+        .card.decimal .card-back {
+            background: linear-gradient(45deg, #a8edea, #fed6e3);
+        }
+
+        .card.matched {
+            opacity: 0.6;
+            pointer-events: none;
+            animation: matchPulse 0.6s ease-in-out;
+        }
+
+        @keyframes matchPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .card.matched .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Drag & Drop Mode */
+        .drag-mode {
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .column {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .column h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .drag-item {
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .drag-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .drag-item.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .drop-zone {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #4ecdc4;
+            background: rgba(78, 205, 196, 0.2);
+            animation: dragPulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes dragPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .drop-zone.filled {
+            background: linear-gradient(45deg, #a8edea, #fed6e3);
+            color: #333;
+            border: 2px solid #4ecdc4;
+            animation: fillSuccess 0.6s ease-in-out;
+        }
+
+        @keyframes fillSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            animation: messageSlide 0.5s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .message.success {
+            background: linear-gradient(45deg, #56ab2f, #a8e6cf);
+            color: white;
+        }
+
+        .message.error {
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .leaderboard {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .leaderboard h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .leaderboard-item:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            font-size: 1.2rem;
+            min-width: 30px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .combo-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+            opacity: 0;
+            animation: comboShow 1s ease-out;
+        }
+
+        @keyframes comboShow {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .drag-mode {
+                grid-template-columns: 1fr;
+            }
+            
+            .card {
+                width: 100px;
+                height: 70px;
+            }
+            
+            .card-front, .card-back {
+                font-size: 1rem;
+            }
+
+            .stats {
+                gap: 15px;
+            }
+
+            .stat-item {
+                min-width: 80px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🎯 Trò chơi ghép cặp</h1>
+            <p class="subtitle">SỐ LA MÃ ↔ SỐ THẬP PHÂN</p>
+            <p style="opacity: 0.8;">Hãy nối mỗi số La Mã với số thập phân tương ứng!</p>
+        </div>
+
+        <div class="level-selector">
+            <button class="level-btn active" onclick="selectLevel(1)">🌟 Cơ bản (I-X)</button>
+            <button class="level-btn" onclick="selectLevel(2)">⭐ Trung bình (I-XX)</button>
+            <button class="level-btn" onclick="selectLevel(3)">🔥 Khó (I-L)</button>
+            <button class="level-btn" onclick="selectLevel(4)">💎 Siêu khó (I-C)</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-value" id="timer">⏰ 60s</span>
+                <span class="stat-label">Thời gian</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="score">🏆 0</span>
+                <span class="stat-label">Điểm</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="combo">🔥 0</span>
+                <span class="stat-label">Combo</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="level">📊 1</span>
+                <span class="stat-label">Cấp độ</span>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="game-modes">
+            <button class="mode-btn active" onclick="switchMode('flip')">🔄 Lật thẻ</button>
+            <button class="mode-btn" onclick="switchMode('drag')">🎯 Kéo thả</button>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="startGame()">🎮 Bắt đầu chơi</button>
+            <button class="btn btn-secondary" onclick="resetGame()">🔄 Chơi lại</button>
+            <button class="btn btn-success" onclick="toggleLeaderboard()">🏅 Bảng xếp hạng</button>
+        </div>
+
+        <div id="message" class="message hidden"></div>
+        <div id="comboIndicator" class="combo-indicator hidden"></div>
+
+        <div id="gameArea" class="game-area flip-mode">
+            <!-- Game content will be generated here -->
+        </div>
+
+        <div id="leaderboard" class="leaderboard hidden">
+            <h3>🏅 Bảng xếp hạng</h3>
+            <div id="leaderboardList">
+                <!-- Leaderboard items will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const romanData = {
+            1: [
+                {roman: 'I', decimal: '1'},
+                {roman: 'II', decimal: '2'},
+                {roman: 'III', decimal: '3'},
+                {roman: 'IV', decimal: '4'},
+                {roman: 'V', decimal: '5'},
+                {roman: 'X', decimal: '10'}
+            ],
+            2: [
+                {roman: 'I', decimal: '1'},
+                {roman: 'V', decimal: '5'},
+                {roman: 'X', decimal: '10'},
+                {roman: 'XI', decimal: '11'},
+                {roman: 'XV', decimal: '15'},
+                {roman: 'XX', decimal: '20'}
+            ],
+            3: [
+                {roman: 'X', decimal: '10'},
+                {roman: 'XX', decimal: '20'},
+                {roman: 'XXX', decimal: '30'},
+                {roman: 'XL', decimal: '40'},
+                {roman: 'XLV', decimal: '45'},
+                {roman: 'L', decimal: '50'}
+            ],
+            4: [
+                {roman: 'L', decimal: '50'},
+                {roman: 'LX', decimal: '60'},
+                {roman: 'XC', decimal: '90'},
+                {roman: 'XCIX', decimal: '99'},
+                {roman: 'C', decimal: '100'},
+                {roman: 'CD', decimal: '400'}
+            ]
+        };
+
+        let currentLevel = 1;
+        let currentMode = 'flip';
+        let gameStarted = false;
+        let timeLeft = 60;
+        let score = 0;
+        let combo = 0;
+        let timer;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let totalPairs = 0;
+        let leaderboardVisible = false;
+
+        // Audio context for sound effects
+        let audioContext;
+        let soundEnabled = true;
+
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                soundEnabled = false;
+            }
+        }
+
+        function playSound(frequency, duration, type = 'sine') {
+            if (!soundEnabled || !audioContext) return;
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function selectLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('level').textContent = `📊 ${level}`;
+            
+            if (gameStarted) {
+                resetGame();
+            }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const gameArea = document.getElementById('gameArea');
+            gameArea.className = `game-area ${mode}-mode`;
+            
+            if (gameStarted) {
+                resetGame();
+            }
+        }
+
+        function startGame() {
+            initAudio();
+            gameStarted = true;
+            timeLeft = 60;
+            score = 0;
+            combo = 0;
+            matchedPairs = 0;
+            flippedCards = [];
+            totalPairs = romanData[currentLevel].length;
+            
+            updateStats();
+            startTimer();
+            
+            if (currentMode === 'flip') {
+                createFlipGame();
+            } else {
+                createDragGame();
+            }
+            
+            hideMessage();
+            playSound(440, 0.2);
+        }
+
+        function resetGame() {
+            gameStarted = false;
+            clearInterval(timer);
+            timeLeft = 60;
+            score = 0;
+            combo = 0;
+            matchedPairs = 0;
+            flippedCards = [];
+            
+            updateStats();
+            updateProgress();
+            
+            document.getElementById('gameArea').innerHTML = '';
+            hideMessage();
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                updateStats();
+                
+                if (timeLeft <= 0) {
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function updateStats() {
+            document.getElementById('timer').textContent = `⏰ ${timeLeft}s`;
+            document.getElementById('score').textContent = `🏆 ${score}`;
+            document.getElementById('combo').textContent = `🔥 ${combo}`;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = totalPairs > 0 ? (matchedPairs / totalPairs) * 100 : 0;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.classList.remove('hidden');
+            
+            setTimeout(() => {
+                hideMessage();
+            }, 2000);
+        }
+
+        function hideMessage() {
+            document.getElementById('message').classList.add('hidden');
+        }
+
+        function showCombo(comboCount) {
+            if (comboCount < 2) return;
+            
+            const indicator = document.getElementById('comboIndicator');
+            indicator.textContent = `COMBO x${comboCount}!`;
+            indicator.classList.remove('hidden');
+            
+            setTimeout(() => {
+                indicator.classList.add('hidden');
+            }, 1000);
+        }
+
+        function createFlipGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = '';
+            
+            const cards = [];
+            romanData[currentLevel].forEach((pair, index) => {
+                cards.push({type: 'roman', value: pair.roman, id: index});
+                cards.push({type: 'decimal', value: pair.decimal, id: index});
+            });
+            
+            // Shuffle cards
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${card.type}`;
+                cardElement.dataset.id = card.id;
+                cardElement.dataset.type = card.type;
+                cardElement.dataset.value = card.value;
+                
+                cardElement.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front">?</div>
+                        <div class="card-back">${card.value}</div>
+                    </div>
+                `;
+                
+                cardElement.addEventListener('click', flipCard);
+                gameArea.appendChild(cardElement);
+            });
+        }
+
+        function flipCard() {
+            if (!gameStarted || this.classList.contains('flipped') || this.classList.contains('matched')) {
+                return;
+            }
+            
+            this.classList.add('flipped');
+            flippedCards.push(this);
+            playSound(523, 0.1);
+            
+            if (flippedCards.length === 2) {
+                setTimeout(checkMatch, 600);
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.id === card2.dataset.id && card1.dataset.type !== card2.dataset.type) {
+                // Match found
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                combo++;
+                
+                const baseScore = 10;
+                const comboBonus = combo > 1 ? combo * 5 : 0;
+                const levelBonus = currentLevel * 2;
+                const totalPoints = baseScore + comboBonus + levelBonus;
+                
+                score += totalPoints;
+                updateStats();
+                
+                playSound(659, 0.3);
+                showMessage(`🎉 Chính xác! +${totalPoints} điểm`, 'success');
+                showCombo(combo);
+                
+                if (matchedPairs === totalPairs) {
+                    endGame(true);
+                }
+            } else {
+                // No match
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                combo = 0;
+                updateStats();
+                
+                playSound(220, 0.3);
+                showMessage('❌ Chưa đúng, hãy thử lại nhé!', 'error');
+            }
+            
+            flippedCards = [];
+        }
+
+        function createDragGame() {
+            const gameArea = document.getElementById('gameArea');
+            gameArea.innerHTML = `
+                <div class="column">
+                    <h3>🏛️ Số La Mã</h3>
+                    <div id="romanColumn"></div>
+                </div>
+                <div class="column">
+                    <h3>🔢 Số Thập Phân</h3>
+                    <div id="decimalColumn"></div>
+                </div>
+            `;
+            
+            const romanColumn = document.getElementById('romanColumn');
+            const decimalColumn = document.getElementById('decimalColumn');
+            
+            const shuffledRomans = [...romanData[currentLevel]].sort(() => Math.random() - 0.5);
+            
+            shuffledRomans.forEach((pair, index) => {
+                const item = document.createElement('div');
+                item.className = 'drag-item';
+                item.draggable = true;
+                item.dataset.value = pair.decimal;
+                item.textContent = pair.roman;
+                
+                item.addEventListener('dragstart', handleDragStart);
+                item.addEventListener('dragend', handleDragEnd);
+                
+                romanColumn.appendChild(item);
+            });
+            
+            romanData[currentLevel].forEach((pair, index) => {
+                const dropZone = document.createElement('div');
+                dropZone.className = 'drop-zone';
+                dropZone.dataset.value = pair.decimal;
+                dropZone.textContent = pair.decimal;
+                
+                dropZone.addEventListener('dragover', handleDragOver);
+                dropZone.addEventListener('drop', handleDrop);
+                
+                decimalColumn.appendChild(dropZone);
+            });
+        }
+
+        function handleDragStart(e) {
+            this.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', this.dataset.value);
+            e.dataTransfer.setData('text/html', this.outerHTML);
+        }
+
+        function handleDragEnd(e) {
+            this.classList.remove('dragging');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            if (this.classList.contains('filled')) {
+                return;
+            }
+            
+            const draggedValue = e.dataTransfer.getData('text/plain');
+            const targetValue = this.dataset.value;
+            
+            if (draggedValue === targetValue) {
+                this.classList.add('filled');
+                this.innerHTML = `${targetValue} ✓`;
+                
+                const draggedElement = document.querySelector(`.drag-item[data-value="${draggedValue}"]`);
+                if (draggedElement) {
+                    draggedElement.remove();
+                }
+                
+                matchedPairs++;
+                combo++;
+                
+                const baseScore = 10;
+                const comboBonus = combo > 1 ? combo * 5 : 0;
+                const levelBonus = currentLevel * 2;
+                const totalPoints = baseScore + comboBonus + levelBonus;
+                
+                score += totalPoints;
+                updateStats();
+                
+                playSound(659, 0.3);
+                showMessage(`🎉 Chính xác! +${totalPoints} điểm`, 'success');
+                showCombo(combo);
+                
+                if (matchedPairs === totalPairs) {
+                    endGame(true);
+                }
+            } else {
+                combo = 0;
+                updateStats();
+                playSound(220, 0.3);
+                showMessage('❌ Chưa đúng, hãy thử lại nhé!', 'error');
+            }
+        }
+
+        function endGame(won) {
+            gameStarted = false;
+            clearInterval(timer);
+            
+            if (won) {
+                const timeBonus = timeLeft * 2;
+                const levelBonus = currentLevel * 50;
+                const totalBonus = timeBonus + levelBonus;
+                score += totalBonus;
+                updateStats();
+                
+                playSound(880, 0.5);
+                showMessage(`🎊 Chúc mừng! Hoàn thành cấp ${currentLevel}! Thưởng: +${totalBonus}`, 'success');
+                
+                saveScore();
+            } else {
+                playSound(165, 0.8);
+                showMessage('⏰ Hết giờ! Hãy thử lại để cải thiện kết quả nhé!', 'error');
+            }
+        }
+
+        function saveScore() {
+            const scores = JSON.parse(localStorage.getItem('romanGameScores') || '[]');
+            const newScore = {
+                score: score,
+                level: currentLevel,
+                mode: currentMode,
+                date: new Date().toLocaleDateString('vi-VN'),
+                time: new Date().toLocaleTimeString('vi-VN')
+            };
+            
+            scores.push(newScore);
+            scores.sort((a, b) => b.score - a.score);
+            scores.splice(10); // Keep only top 10
+            
+            localStorage.setItem('romanGameScores', JSON.stringify(scores));
+        }
+
+        function toggleLeaderboard() {
+            leaderboardVisible = !leaderboardVisible;
+            const leaderboard = document.getElementById('leaderboard');
+            
+            if (leaderboardVisible) {
+                displayLeaderboard();
+                leaderboard.classList.remove('hidden');
+            } else {
+                leaderboard.classList.add('hidden');
+            }
+        }
+
+        function displayLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('romanGameScores') || '[]');
+            const leaderboardList = document.getElementById('leaderboardList');
+            
+            if (scores.length === 0) {
+                leaderboardList.innerHTML = '<p style="text-align: center; opacity: 0.7;">Chưa có điểm số nào được ghi nhận</p>';
+                return;
+            }
+            
+            leaderboardList.innerHTML = scores.map((score, index) => `
+                <div class="leaderboard-item">
+                    <div class="leaderboard-rank">${index + 1}</div>
+                    <div class="leaderboard-info">
+                        <div>Cấp ${score.level} - ${score.mode === 'flip' ? 'Lật thẻ' : 'Kéo thả'}</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">${score.date} ${score.time}</div>
+                    </div>
+                    <div class="leaderboard-score">${score.score}</div>
+                </div>
+            `).join('');
+        }
+
+        // Event listeners
+        document.addEventListener('dragleave', (e) => {
+            if (e.target.classList.contains('drop-zone')) {
+                e.target.classList.remove('drag-over');
+            }
+        });
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+        });
+
+        // Initialize
+        updateStats();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ccb504a04c715b',t:'MTc1NDc5OTY5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
